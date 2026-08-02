@@ -1,0 +1,62 @@
+rules_version = '2';
+
+// POC rules for a single salon.
+//
+// Invariant that matters most: NOTHING writes `appointments` or `slotLocks`
+// except Cloud Functions (admin SDK bypasses these rules). That is the second
+// layer behind the deterministic-slot-ID transaction in functions/src/booking.js.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // A customer owns exactly their own profile doc. They may create it on
+    // first sign-in and edit their display name; nothing else.
+    match /customers/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null
+                    && request.auth.uid == uid
+                    && request.resource.data.phone == request.auth.token.phone_number;
+      allow update: if request.auth != null
+                    && request.auth.uid == uid
+                    && request.resource.data.phone == resource.data.phone;
+      allow delete: if false;
+    }
+
+    // Catalog data is public-read for signed-in users, admin-write only.
+    match /services/{serviceId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    match /stylists/{stylistId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+
+      match /shifts/{shiftId} {
+        allow read: if request.auth != null;
+        allow write: if false;
+      }
+    }
+
+    // Appointments: read-only for signed-in clients (the owner dashboard
+    // subscribes with onSnapshot). All writes go through Cloud Functions.
+    //
+    // POC caveat: this lets any signed-in customer read every appointment,
+    // including other customers' denormalized phone numbers. Before this goes
+    // near real customers, split the dashboard onto a claims-gated owner role
+    // (or move the dashboard read into a Function too).
+    match /appointments/{appointmentId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if false;
+    }
+
+    // Slot locks are pure bookkeeping for the double-booking transaction.
+    // No client ever needs to see them.
+    match /slotLocks/{lockId} {
+      allow read, write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

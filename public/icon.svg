@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Polish Bar">
+  <rect width="512" height="512" rx="96" fill="#b04a6f"/>
+  <!-- A stylised nail-polish brush stroke. -->
+  <path d="M256 108c-46 0-84 34-84 76v92c0 46 38 84 84 84s84-38 84-84v-92c0-42-38-76-84-76z"
+        fill="#faf7f8" opacity="0.95"/>
+  <path d="M256 108c-46 0-84 34-84 76v34h168v-34c0-42-38-76-84-76z" fill="#f2c3d3"/>
+  <rect x="232" y="360" width="48" height="52" rx="16" fill="#faf7f8" opacity="0.9"/>
+</svg>

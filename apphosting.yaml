@@ -1,0 +1,48 @@
+# Firebase App Hosting — build + runtime config for the Next.js app.
+# Docs: https://firebase.google.com/docs/app-hosting/configure
+
+runConfig:
+  # POC sizing. minInstances: 0 means cold starts; bump to 1 if the owner
+  # dashboard feels sluggish on first load of the day.
+  minInstances: 0
+  maxInstances: 2
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+
+env:
+  # ---------------------------------------------------------------------------
+  # Firebase web config. Client-side values, safe to ship in the bundle, but
+  # they must exist at BUILD time because they are inlined by Next.js.
+  #
+  # If the App Hosting backend is linked to a Firebase Web App, App Hosting also
+  # injects FIREBASE_WEBAPP_CONFIG automatically — lib/firebase-client.ts falls
+  # back to it, so these can be omitted once the app is linked.
+  # ---------------------------------------------------------------------------
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: ''
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: ''
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: ''
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: ''
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: ''
+    availability: [BUILD, RUNTIME]
+
+  # ---------------------------------------------------------------------------
+  # Server-only. NEVER give this BUILD availability and never prefix it
+  # NEXT_PUBLIC_ — that would inline the key into the client bundle.
+  #
+  # Create it once with:
+  #   firebase apphosting:secrets:set GEMINI_API_KEY
+  #   firebase apphosting:secrets:grantaccess GEMINI_API_KEY --backend <backend-id>
+  # ---------------------------------------------------------------------------
+  - variable: GEMINI_API_KEY
+    secret: GEMINI_API_KEY
+    availability: [RUNTIME]

@@ -1,0 +1,19 @@
+{
+  "name": "Polish Bar — Nail Salon Booking",
+  "short_name": "Polish Bar",
+  "description": "Book a nail appointment and check in with your own phone.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#faf7f8",
+  "theme_color": "#b04a6f",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
