@@ -23,7 +23,7 @@ function projectId(): string {
     process.env.GOOGLE_CLOUD_PROJECT ??
     process.env.FIREBASE_PROJECT_ID ??
     process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ??
-    'nail-salon-poc'
+    'nail-salon-poc-2026'
   );
 }
 

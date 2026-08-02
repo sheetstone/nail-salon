@@ -21,7 +21,7 @@ const SALON_TZ = 'America/Los_Angeles';
 const PROJECT_ID =
   process.env.FIREBASE_PROJECT_ID ??
   process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ??
-  'nail-salon-poc';
+  'nail-salon-poc-2026';
 
 // Default to the emulator so a stray run cannot touch production data.
 if (process.env.FIRESTORE_EMULATOR_HOST === undefined) {
