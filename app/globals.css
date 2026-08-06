@@ -1,35 +1,76 @@
-/* Responsive for phone (customer) and tablet (owner). No dedicated hardware. */
+/* ═══════════════════════════════════════════════════════════════════════════
+   Token layer — direction 2a ("Day timeline, daylight"), built on Nocturne.
+
+   Read DESIGN-SYSTEM.md before editing. The short version:
+
+     1. A salon's identity is SIX values (--brand, --page, --card, --ink,
+        --line, --card-radius). They are set by lib/theme.ts, per salon.
+     2. Everything else on this page is DERIVED from those six.
+     3. No component may write a literal colour. If a component needs a shade
+        that isn't here, add a derived token here — don't inline a hex.
+
+   Test for whether you got it right: change --brand alone and the entire app
+   re-themes, with no other edit anywhere.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  --bg: #faf7f8;
-  --surface: #ffffff;
-  --ink: #241c20;
-  --muted: #6d6169;
-  --line: #e8dfe3;
-  --accent: #b04a6f;
-  --accent-ink: #ffffff;
-  --ok: #1f7a52;
-  --ok-bg: #eaf6f0;
-  --err: #b3261e;
-  --radius: 14px;
+  /* — The six. Overridden per salon; these are the 2a defaults. — */
+  --brand: #7a5af0;
+  --page: #f1f2f9;
+  --card: #fdfdff;
+  --ink: #23252f;
+  --line: #e0e3ef;
+  --card-radius: 8px;
+
+  /* — Derived brand roles ————————————————————————————————————————————
+     The design uses the accent at four strengths and never at full flood
+     except on the primary fill. These are those four, named by intent. */
+  --brand-text: color-mix(in srgb, var(--brand) 88%, var(--ink)); /* accent text on --card */
+  --brand-wash: color-mix(in srgb, var(--brand) 9%, transparent); /* AI proposal card */
+  --brand-tint: color-mix(in srgb, var(--brand) 12%, transparent); /* open slot, hover */
+  --brand-tint-strong: color-mix(in srgb, var(--brand) 20%, transparent); /* slot hover */
+  --brand-on: #ffffff; /* text on a solid --brand fill */
+
+  /* — Derived ink roles ————————————————————————————————————————————
+     Muted text in the design is always --ink at reduced alpha, never a
+     separate grey. Four steps cover every screen in 2a. */
+  --ink-58: color-mix(in srgb, var(--ink) 58%, transparent); /* secondary body */
+  --ink-55: color-mix(in srgb, var(--ink) 55%, transparent); /* meta lines */
+  --ink-45: color-mix(in srgb, var(--ink) 45%, transparent); /* fine print */
+  --ink-40: color-mix(in srgb, var(--ink) 40%, transparent); /* chevrons, disabled */
+  --ink-hover: color-mix(in srgb, var(--ink) 5%, transparent); /* neutral hover */
+  --ink-press: color-mix(in srgb, var(--ink) 10%, transparent);
+
+  /* Booked/unavailable blocks. Derived so it tracks the theme's ground
+     rather than sitting at the design's literal #e8eaf3. */
+  --taken: color-mix(in srgb, var(--ink) 8%, var(--page));
+  --taken-text: var(--ink-45);
+
+  /* — Nocturne's scales, kept verbatim ————————————————————————————————
+     Density 0.70×. Every gap and pad in the 2a screens is one of these:
+     11.2px, 16.8px, 22.4px, 8.4px, 5.6px, 2.8px. Use the variable. */
+  --space-1: 2.8px;
+  --space-2: 5.6px;
+  --space-3: 8.4px;
+  --space-4: 11.2px;
+  --space-6: 16.8px;
+  --space-8: 22.4px;
+
+  --radius-sm: 4px;
+  --radius-md: var(--card-radius);
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent);
+  --shadow-md: 0 2px 8px color-mix(in srgb, var(--ink) 8%, transparent);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #171215;
-    --surface: #221a1e;
-    --ink: #f6eff2;
-    --muted: #a89aa1;
-    --line: #3a2d33;
-    --accent: #e58aab;
-    --accent-ink: #2a1119;
-    --ok: #7fd8ab;
-    --ok-bg: #17301f;
-    --err: #ff9d94;
-  }
-}
+/* ═══════════════════════════════════════════════════════════════════════════
+   Base
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -37,344 +78,165 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--bg);
+  background: var(--page);
   color: var(--ink);
-  font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-inter), Inter, system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
   -webkit-text-size-adjust: 100%;
-}
-
-main {
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-}
-
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface);
-  position: sticky;
-  top: 0;
-  z-index: 5;
-}
-
-.brand {
-  font-weight: 650;
-  letter-spacing: 0.01em;
-}
-
-.content {
-  width: 100%;
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 18px 16px 48px;
-}
-
-/* Owner dashboard gets more room on a tablet. */
-@media (min-width: 860px) {
-  .content {
-    max-width: 980px;
-  }
-}
-
-.stack > * + * {
-  margin-top: 14px;
-}
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 18px;
-}
-
-.card.success {
-  border-color: var(--ok);
-  background: var(--ok-bg);
-}
-
-.card.center {
-  text-align: center;
 }
 
 h1,
 h2,
-h3 {
-  margin: 0 0 10px;
-  line-height: 1.25;
+h3,
+h4 {
+  margin: 0 0 var(--space-2);
+  font-weight: 500; /* Nocturne: hierarchy is size and space, never weight */
+  line-height: 1.2;
+  letter-spacing: -0.015em;
 }
 
 h2 {
-  font-size: 1.25rem;
+  font-size: 20px;
 }
-
 h3 {
-  font-size: 1.05rem;
+  font-size: 16px;
 }
 
 p {
-  margin: 0 0 10px;
+  margin: 0 0 var(--space-3);
 }
 
-.muted {
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.big {
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.error {
-  color: var(--err);
-  font-weight: 500;
-}
-
-.mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.8rem;
-  color: var(--muted);
-  word-break: break-all;
-}
-
-label {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--muted);
-  margin: 12px 0 6px;
-}
-
-input,
-select,
-textarea {
-  width: 100%;
-  padding: 12px 14px;
-  font: inherit;
-  color: var(--ink);
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-}
-
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-textarea {
-  resize: vertical;
+a {
+  color: var(--brand-text);
+  text-underline-offset: 3px;
 }
 
 button {
   font: inherit;
   cursor: pointer;
-  border-radius: 10px;
   border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: inherit;
 }
 
 button:disabled {
-  opacity: 0.55;
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Themed states, never browser defaults — Nocturne's rule. */
+:focus {
+  outline: none;
+}
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+::selection {
+  background: var(--brand-tint-strong);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Primitives shared by the 2a screens
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.surface {
+  background: var(--card);
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.muted {
+  color: var(--ink-55);
+  font-size: 13px;
+}
+
+.kicker {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brand-text);
+}
+
+/* Buttons. The design's primary is a brand-tinted fill with brand text —
+   lighter than a flood, which Nocturne forbids at scale. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: var(--space-2) calc(var(--space-3) * 1.2);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  border-radius: var(--radius-md);
+}
+
+.btn-primary {
+  color: var(--brand-text);
+  background: var(--brand-tint);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--brand-tint-strong);
+}
+
+.btn-secondary {
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--ink-hover);
+}
+
+.btn-icon {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: var(--ink-58);
+}
+.btn-icon:hover {
+  background: var(--ink-hover);
+}
+
+/* Availability chips: open slots read in brand, taken reads as ground. */
+.slot {
+  padding: var(--space-2) var(--space-3);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  border-radius: var(--radius-sm);
+  color: var(--brand-text);
+  background: var(--brand-tint);
+}
+.slot:hover:not(:disabled) {
+  background: var(--brand-tint-strong);
+}
+
+.slot-taken {
+  color: var(--taken-text);
+  background: var(--taken);
   cursor: default;
 }
 
-.primary {
-  width: 100%;
-  margin-top: 14px;
-  padding: 13px 16px;
-  font-weight: 600;
-  color: var(--accent-ink);
-  background: var(--accent);
-}
-
-.ghost {
-  width: 100%;
-  margin-top: 8px;
-  padding: 11px 16px;
-  color: var(--ink);
-  background: transparent;
-  border-color: var(--line);
-}
-
-.link {
-  background: none;
-  border: none;
-  color: var(--accent);
-  padding: 4px;
-  font-size: 0.9rem;
-}
-
-/* Tabs ---------------------------------------------------------------------- */
-
-.tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-.tab {
-  flex: 1;
-  padding: 11px 12px;
-  font-weight: 550;
-  color: var(--muted);
-  background: var(--surface);
-  border-color: var(--line);
-}
-
-.tab.active {
-  color: var(--accent-ink);
-  background: var(--accent);
-  border-color: var(--accent);
-}
-
-/* Slot picker -------------------------------------------------------------- */
-
-.stylist-row + .stylist-row {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
-}
-
-.stylist-name {
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-.slots {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.slot {
-  padding: 9px 12px;
-  min-width: 78px;
-  font-variant-numeric: tabular-nums;
-  color: var(--ink);
-  background: var(--bg);
-  border-color: var(--line);
-}
-
-.slot:hover:not(:disabled) {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-/* Quick book -------------------------------------------------------------- */
-
-.examples {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
+.slot-picked {
+  color: var(--brand-on);
+  background: var(--brand);
 }
 
 .chip {
-  padding: 7px 11px;
-  font-size: 0.82rem;
-  color: var(--muted);
-  background: var(--bg);
-  border-color: var(--line);
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  font-size: 11px;
+  border-radius: calc(var(--radius-md) * 0.75);
+  color: var(--brand-text);
+  background: var(--brand-tint);
 }
 
-.proposal {
-  margin: 12px 0 0;
-  display: grid;
-  gap: 8px;
-}
-
-.proposal div {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 8px;
-}
-
-.proposal dt {
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-.proposal dd {
-  margin: 0;
-  font-weight: 550;
-  text-align: right;
-}
-
-/* Owner schedule ---------------------------------------------------------- */
-
-.schedule {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.92rem;
-}
-
-.schedule th {
-  text-align: left;
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-  padding: 0 10px 8px 0;
-}
-
-.schedule td {
-  padding: 10px 10px 10px 0;
-  border-top: 1px solid var(--line);
-  vertical-align: middle;
-}
-
-.schedule tr.here td {
-  background: var(--ok-bg);
-}
-
-.status {
-  display: inline-block;
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 0.76rem;
-  font-weight: 600;
-  background: var(--bg);
-  border: 1px solid var(--line);
-}
-
-.status.checked-in {
-  color: var(--ok);
-  border-color: var(--ok);
-}
-
-.tag {
-  margin-left: 6px;
-  padding: 1px 6px;
-  border-radius: 4px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--accent);
-  border: 1px solid var(--accent);
-}
-
-/* Small tables must scroll inside their own container, never the page. */
-.card:has(.schedule) {
-  overflow-x: auto;
-}
-
-.footnote {
-  margin-top: 22px;
-  font-size: 0.85rem;
-  color: var(--muted);
-  text-align: center;
-}
-
-.footnote a {
-  color: var(--accent);
+.chip-quiet {
+  color: var(--ink-55);
+  background: var(--taken);
 }
 
 .sr-only {

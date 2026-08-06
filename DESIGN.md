@@ -310,7 +310,27 @@ customer as an opaque server error.
 - **App Hosting supplies ADC automatically** on Cloud Run, so `initializeApp()` needs no credentials
   in production. Locally you need either the emulators or `GOOGLE_APPLICATION_CREDENTIALS`.
 
-## 12. Suggested build order (POC milestones)
+## 12. Visual design & per-salon theming
+
+The interface follows direction **2a** of the
+[Booking system redesign](https://claude.ai/design/p/0e234cf1-5453-41ec-b4af-7245846e97e1)
+project, on top of the **Nocturne** design system. The full treatment lives in
+**`DESIGN-SYSTEM.md`**; the governing principle is:
+
+> **A salon's entire visual identity is six CSS tokens** — `--brand`, `--page`, `--card`,
+> `--ink`, `--line`, `--card-radius`. Every other colour in the app is derived from those six
+> with `color-mix()`. No component writes a literal colour.
+
+This is deliberate room to tweak. A salon rebrands by supplying six values; it does not get a
+fork, a stylesheet, or a branch in a component. Themes live in `lib/theme.ts` as plain records,
+applied once in `app/layout.tsx` as CSS custom properties — so when this stops being single-salon,
+`ACTIVE_THEME` becomes `salons/{salonId}.theme` and **no component changes**, because components
+read CSS variables and never import the theme object.
+
+`/theme` renders the same components under every preset side by side. It is the regression test
+for the principle: anything that stays purple across five themes is hard-coded.
+
+## 13. Suggested build order (POC milestones)
 
 1. ✅ Firebase project + App Hosting backend + Auth (Phone) + empty Firestore; deploy a "hello" PWA.
 2. ✅ Phone sign-in flow end to end; create/read `customers/{uid}`.

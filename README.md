@@ -78,4 +78,4 @@ After that, pushing to the connected branch builds and deploys. Fill in the
 let App Hosting inject `FIREBASE_WEBAPP_CONFIG`).
 
 **Before real customers:** `/owner` is not access-controlled yet, and any signed-in user can read
-every appointment. See the end of `DESIGN.md` §12.
+every appointment. See the end of `DESIGN.md` §13.

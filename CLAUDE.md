@@ -51,6 +51,16 @@ DESIGN.md                     full design doc
 CLAUDE.md                     this file
 ```
 
+## Design & theming
+
+Read **`DESIGN-SYSTEM.md`** before writing any component. The rule in one line:
+
+> **A salon's entire visual identity is six CSS tokens** (`--brand`, `--page`, `--card`, `--ink`, `--line`, `--card-radius`). No component may write a literal colour; every shade is derived from those six with `color-mix()` in `app/globals.css`.
+
+We build direction **2a** ("Day timeline, daylight") from the [Booking system redesign](https://claude.ai/design/p/0e234cf1-5453-41ec-b4af-7245846e97e1) project. It sits on the **Nocturne** design system — Nocturne's 0.70× spacing scale (`--space-1…8`), Inter at weight 500, 8px radii, Phosphor icons, and themed focus rings all carry over unchanged.
+
+Check your work at **`/theme`**, which renders the same components under five salon themes. Anything that stays purple in the other four is hard-coded.
+
 ## Core conventions — follow these
 
 - **Phone numbers** are stored E.164 (`+15551234567`). The Firebase Auth `uid` is the real primary key; phone is the verified login credential on `customers/{uid}`.
@@ -122,4 +132,4 @@ git push                                      # App Hosting builds from the conn
 
 ## Definition of done (POC)
 
-Phone sign-in → see on-duty stylists this week → book a slot (no double-booking possible) → quick-book via natural language with a confirm step → QR check-in that updates the owner's dashboard live. See `DESIGN.md` §12 for the build order and what's left.
+Phone sign-in → see on-duty stylists this week → book a slot (no double-booking possible) → quick-book via natural language with a confirm step → QR check-in that updates the owner's dashboard live. See `DESIGN.md` §13 for the build order and what's left.
