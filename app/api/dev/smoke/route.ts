@@ -56,8 +56,12 @@ export async function GET() {
       endDate: today.plus({ days: 6 }).toFormat('yyyy-MM-dd'),
     };
     const before = await computeAvailability(range);
-    const firstDay = before.days.find((d) => d.stylists.length > 0);
-    const firstStylist = firstDay?.stylists[0];
+    // The payload now lists a stylist for any day they have a SHIFT, including
+    // days with no openings — the timeline needs that to tell "fully booked"
+    // from "not working". So pick the first stylist that actually has starts,
+    // not just the first one listed.
+    const firstDay = before.days.find((d) => d.stylists.some((s) => s.starts.length > 0));
+    const firstStylist = firstDay?.stylists.find((s) => s.starts.length > 0);
     record(
       'availability computed',
       Boolean(firstStylist),

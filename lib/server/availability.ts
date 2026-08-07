@@ -19,7 +19,13 @@ import {
   localWallClockToUtc,
   toSlotIso,
 } from '../time';
-import type { AvailabilityPayload, Service, Shift, Stylist } from '../types';
+import type {
+  AvailabilityPayload,
+  IsoInterval,
+  Service,
+  Shift,
+  Stylist,
+} from '../types';
 
 /**
  * Availability is computed here, server-side, and returned as one compact
@@ -85,6 +91,7 @@ export async function loadStylistsForService(serviceId: string): Promise<Stylist
         name: String(data.name ?? d.id),
         active: data.active === true,
         serviceIds: Array.isArray(data.serviceIds) ? data.serviceIds : [],
+        specialty: typeof data.specialty === 'string' ? data.specialty : undefined,
       };
     })
     .filter((s) => s.serviceIds.includes(serviceId));
@@ -116,7 +123,12 @@ async function loadShifts(
 }
 
 /**
- * Busy intervals for one stylist, already expanded by the cleanup buffer.
+ * Booked intervals for one stylist — the REAL appointment spans, with no
+ * cleanup buffer applied. The buffer is added where free slots are computed
+ * (`slotsForShift`), so that the timeline can draw a "booked" block matching
+ * the appointment a customer actually has, rather than one padded by 15
+ * invisible minutes.
+ *
  * Uses the (stylistId, start) composite index in firestore.indexes.json.
  */
 async function loadBusyIntervals(
@@ -139,7 +151,7 @@ async function loadBusyIntervals(
     .map((a) => {
       const start = DateTime.fromJSDate(a.start.toDate(), { zone: 'utc' });
       const end = DateTime.fromJSDate(a.end.toDate(), { zone: 'utc' });
-      return interval(start, end.plus({ minutes: BUFFER_MINUTES }));
+      return interval(start, end);
     });
 }
 
@@ -156,11 +168,11 @@ function slotsForShift(args: {
   durationMin: number;
   busy: Interval[];
   notBefore: DateTime;
-}): string[] {
+}): { starts: string[]; window: Interval | null } {
   const { shift, durationMin, busy, notBefore } = args;
   const shiftStart = localWallClockToUtc(shift.date, shift.start);
   const shiftEnd = localWallClockToUtc(shift.date, shift.end);
-  if (shiftEnd <= shiftStart) return [];
+  if (shiftEnd <= shiftStart) return { starts: [], window: null };
 
   const starts: string[] = [];
   let cursor = ceilToSlotGrid(shiftStart > notBefore ? shiftStart : notBefore);
@@ -169,13 +181,18 @@ function slotsForShift(args: {
     const serviceEnd = cursor.plus({ minutes: durationMin });
     if (serviceEnd > shiftEnd) break;
 
+    // Expand each booked interval by the buffer here, rather than storing it
+    // padded — so display keeps the true appointment span while booking still
+    // reserves turnover time. Same window lib/server/booking.ts locks.
     const claim = interval(cursor, serviceEnd.plus({ minutes: BUFFER_MINUTES }));
-    if (!busy.some((b) => b.overlaps(claim))) {
-      starts.push(toSlotIso(cursor));
-    }
+    const collides = busy.some((b) =>
+      interval(b.start!, b.end!.plus({ minutes: BUFFER_MINUTES })).overlaps(claim)
+    );
+    if (!collides) starts.push(toSlotIso(cursor));
+
     cursor = cursor.plus({ minutes: SLOT_MINUTES });
   }
-  return starts;
+  return { starts, window: interval(shiftStart, shiftEnd) };
 }
 
 export async function computeAvailability(args: {
@@ -218,16 +235,36 @@ export async function computeAvailability(args: {
         loadBusyIntervals(stylist.id, from, to),
       ]);
 
-      const byDate = new Map<string, string[]>();
+      // Keyed by salon-local date. A stylist appears for a date if they have a
+      // shift that day — even with zero openings — so the timeline can show
+      // "fully booked" as distinct from "not working".
+      const byDate = new Map<
+        string,
+        { starts: string[]; shifts: IsoInterval[]; busy: IsoInterval[] }
+      >();
+
       for (const shift of shifts) {
-        const starts = slotsForShift({
+        const { starts, window } = slotsForShift({
           shift,
           durationMin: service.durationMin,
           busy,
           notBefore,
         });
-        if (starts.length === 0) continue;
-        byDate.set(shift.date, (byDate.get(shift.date) ?? []).concat(starts));
+        if (!window) continue;
+
+        const entry = byDate.get(shift.date) ?? { starts: [], shifts: [], busy: [] };
+        entry.starts.push(...starts);
+        entry.shifts.push({
+          startISO: toSlotIso(window.start!),
+          endISO: toSlotIso(window.end!),
+        });
+        // Only the booked intervals that actually intersect this shift.
+        for (const b of busy) {
+          if (!b.overlaps(window)) continue;
+          const iso = { startISO: toSlotIso(b.start!), endISO: toSlotIso(b.end!) };
+          if (!entry.busy.some((x) => x.startISO === iso.startISO)) entry.busy.push(iso);
+        }
+        byDate.set(shift.date, entry);
       }
       return { stylist, byDate };
     })
@@ -237,11 +274,17 @@ export async function computeAvailability(args: {
     date,
     stylists: perStylist
       .filter(({ byDate }) => byDate.has(date))
-      .map(({ stylist, byDate }) => ({
-        stylistId: stylist.id,
-        stylistName: stylist.name,
-        starts: [...byDate.get(date)!].sort(),
-      })),
+      .map(({ stylist, byDate }) => {
+        const entry = byDate.get(date)!;
+        return {
+          stylistId: stylist.id,
+          stylistName: stylist.name,
+          specialty: stylist.specialty ?? null,
+          starts: [...entry.starts].sort(),
+          shifts: [...entry.shifts].sort((a, b) => a.startISO.localeCompare(b.startISO)),
+          busy: [...entry.busy].sort((a, b) => a.startISO.localeCompare(b.startISO)),
+        };
+      }),
   }));
 
   return {

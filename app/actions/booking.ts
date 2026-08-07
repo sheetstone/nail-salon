@@ -82,6 +82,58 @@ export async function cancelAppointmentAction(args: {
   });
 }
 
+/**
+ * The caller's most recent past visit, for the home screen's "Book last visit
+ * again" row. Returns null for a first-time customer.
+ *
+ * Reading this through an action rather than the client SDK keeps it working
+ * before the rules rework in #2 lands, and lets us re-read the CURRENT service
+ * price — the appointment's own `price` is the historical one and would be
+ * misleading if the salon has repriced since.
+ */
+export async function getLastVisitAction(args: {
+  idToken: string;
+}): Promise<
+  ActionResult<{
+    serviceId: string;
+    serviceName: string;
+    stylistId: string;
+    stylistName: string;
+    price: number | null;
+  } | null>
+> {
+  return run(async () => {
+    const caller = await requireCaller(args.idToken);
+
+    const snap = await adminDb
+      .collection(COL.appointments)
+      .where('customerUid', '==', caller.uid)
+      .where('start', '<=', new Date())
+      .orderBy('start', 'desc')
+      .limit(5)
+      .get();
+
+    const past = snap.docs
+      .map((d) => d.data())
+      .find((a) => a.status === 'completed' || a.status === 'checked-in');
+    if (!past) return null;
+
+    // Current price, not the price they paid.
+    const serviceSnap = await adminDb
+      .collection(COL.services)
+      .doc(String(past.serviceId))
+      .get();
+
+    return {
+      serviceId: String(past.serviceId),
+      serviceName: String(past.serviceName),
+      stylistId: String(past.stylistId),
+      stylistName: String(past.stylistName),
+      price: serviceSnap.exists ? Number(serviceSnap.data()!.price ?? 0) : null,
+    };
+  });
+}
+
 export async function quickBookAction(args: {
   idToken: string;
   text: string;

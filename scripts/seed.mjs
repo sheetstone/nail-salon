@@ -48,6 +48,7 @@ const ALL = SERVICES.map((s) => s.id);
 const STYLISTS = [
   {
     id: 'amy',
+    specialty: 'Gel & acrylic',
     name: 'Amy',
     active: true,
     serviceIds: ALL,
@@ -56,6 +57,7 @@ const STYLISTS = [
   },
   {
     id: 'bao',
+    specialty: 'Pedicures & nail art',
     name: 'Bao',
     active: true,
     serviceIds: ALL.filter((id) => id !== 'full-set'),
@@ -64,6 +66,7 @@ const STYLISTS = [
   },
   {
     id: 'chi',
+    specialty: 'Gel specialist',
     name: 'Chi',
     active: true,
     serviceIds: ['gel-manicure', 'full-set', 'classic-manicure'],
@@ -72,6 +75,7 @@ const STYLISTS = [
   },
   {
     id: 'dana',
+    specialty: 'All services',
     name: 'Dana',
     active: false, // on leave — must never appear in availability
     serviceIds: ALL,

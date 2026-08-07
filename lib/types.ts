@@ -32,6 +32,8 @@ export interface Stylist {
   name: string;
   active: boolean;
   serviceIds: string[];
+  /** Short line under the name on the home screen, e.g. "Gel & acrylic". */
+  specialty?: string;
 }
 
 /** Stored in salon-local wall-clock time, NOT UTC. */
@@ -67,11 +69,34 @@ export interface Appointment {
 
 // --- Availability payload (computed server-side, returned in one shot) -------
 
+/** A UTC half-open interval, as canonical slot ISO strings. */
+export interface IsoInterval {
+  startISO: string;
+  endISO: string;
+}
+
 export interface StylistAvailability {
   stylistId: string;
   stylistName: string;
+  /** Denormalized onto the payload so the home screen needs no second read. */
+  specialty: string | null;
   /** Canonical UTC slot ISO strings, ascending. */
   starts: string[];
+  /**
+   * The stylist's shift windows for this day.
+   *
+   * The timeline needs these to draw the day at all: without them it cannot
+   * tell "no openings because fully booked" from "no openings because off",
+   * and it has no axis to lay proportional blocks against. Availability
+   * computes them anyway — see lib/server/availability.ts.
+   */
+  shifts: IsoInterval[];
+  /**
+   * Appointments already on the books, WITHOUT the cleanup buffer, so a
+   * rendered "booked" block matches the real appointment a customer would
+   * see. The buffer is applied when computing `starts`, not here.
+   */
+  busy: IsoInterval[];
 }
 
 export interface DayAvailability {
