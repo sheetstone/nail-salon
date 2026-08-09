@@ -135,8 +135,18 @@ async function seed() {
   }
   console.log(`  shifts:   ${shiftCount} across the next ${SHIFT_DAYS} days`);
 
-  console.log('\nDone. Sign in with any phone number in the Auth emulator.');
-  console.log('Emulator UI: http://127.0.0.1:4000');
+  // The tail message depends on where we actually wrote — printing
+  // "Auth emulator" after seeding production is how you talk yourself into
+  // thinking a live seed was a dry run.
+  if (process.env.FIRESTORE_EMULATOR_HOST) {
+    console.log('\nDone. Sign in with any phone number in the Auth emulator.');
+    console.log('Emulator UI: http://127.0.0.1:4000');
+  } else {
+    console.log(`\nDone — wrote to LIVE ${PROJECT_ID}.`);
+    console.log(
+      `Console: https://console.firebase.google.com/project/${PROJECT_ID}/firestore`
+    );
+  }
 }
 
 seed().catch((error) => {
