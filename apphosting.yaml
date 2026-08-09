@@ -20,19 +20,19 @@ env:
   # back to it, so these can be omitted once the app is linked.
   # ---------------------------------------------------------------------------
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
-    value: ''
+    value: 'AIzaSyBGFSKpTv80ncjc7T6CDksCoIFf-7ltilA'
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-    value: ''
+    value: 'nail-salon-poc-2026.firebaseapp.com'
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
-    value: ''
+    value: 'nail-salon-poc-2026'
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_FIREBASE_APP_ID
-    value: ''
+    value: '1:938240917630:web:2e79f7a7c4da171d70582f'
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-    value: ''
+    value: '938240917630'
     availability: [BUILD, RUNTIME]
 
   # ---------------------------------------------------------------------------
