@@ -16,3 +16,9 @@ ui-debug.log
 
 .DS_Store
 tsconfig.tsbuildinfo
+
+# service-account keys — never commit
+*serviceAccount*.json
+*-service-account.json
+*-adminsdk-*.json
+gcloud-key.json

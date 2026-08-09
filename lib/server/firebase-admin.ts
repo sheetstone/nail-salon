@@ -4,6 +4,8 @@ import { getApps, initializeApp, type App } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 
+import { FIRESTORE_DATABASE_ID } from '../config';
+
 /**
  * Admin SDK singleton. Server Actions run on Cloud Run under App Hosting, which
  * supplies Application Default Credentials, so initializeApp() needs no
@@ -33,7 +35,7 @@ function adminApp(): App {
   return initializeApp({ projectId: projectId() });
 }
 
-export const adminDb = getFirestore(adminApp());
+export const adminDb = getFirestore(adminApp(), FIRESTORE_DATABASE_ID);
 export const adminAuth = getAuth(adminApp());
 
 export const COL = {

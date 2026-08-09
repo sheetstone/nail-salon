@@ -6,6 +6,16 @@
  * build that now — see DESIGN.md §2.
  */
 
+/**
+ * Firestore database ID.
+ *
+ * This project uses a NAMED database rather than "(default)", so every client
+ * — admin, browser, and the seed script — must ask for it by name. A client
+ * that omits it silently talks to a "(default)" database that does not exist,
+ * and every read comes back empty with no error.
+ */
+export const FIRESTORE_DATABASE_ID = 'nail-salon-db';
+
 /** The one hard-coded salon timezone. Shifts are stored in this wall clock. */
 export const SALON_TZ = 'America/Los_Angeles';
 

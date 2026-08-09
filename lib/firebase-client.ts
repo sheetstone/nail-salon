@@ -4,6 +4,8 @@ import { getApp, getApps, initializeApp, type FirebaseOptions } from 'firebase/a
 import { connectAuthEmulator, getAuth } from 'firebase/auth';
 import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
 
+import { FIRESTORE_DATABASE_ID } from './config';
+
 /**
  * Firebase web config is client-side by design — the apiKey here is an
  * identifier, not a secret. Access control lives in firestore.rules and in the
@@ -50,7 +52,7 @@ export function firebaseAuth() {
 }
 
 export function firebaseDb() {
-  const db = getFirestore(createApp());
+  const db = getFirestore(createApp(), FIRESTORE_DATABASE_ID);
   if (useEmulators && !emulatorsWired) {
     wireEmulators();
   }
@@ -64,7 +66,7 @@ function wireEmulators() {
     connectAuthEmulator(getAuth(createApp()), 'http://127.0.0.1:9099', {
       disableWarnings: true,
     });
-    connectFirestoreEmulator(getFirestore(createApp()), '127.0.0.1', 8080);
+    connectFirestoreEmulator(getFirestore(createApp(), FIRESTORE_DATABASE_ID), '127.0.0.1', 8080);
   } catch (error) {
     // Reconnecting an already-connected emulator throws; harmless in dev.
     console.debug('Emulator wiring skipped:', error);

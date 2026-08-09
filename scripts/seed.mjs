@@ -32,7 +32,10 @@ const target = process.env.FIRESTORE_EMULATOR_HOST
   : `LIVE project ${PROJECT_ID}`;
 
 initializeApp({ projectId: PROJECT_ID });
-const db = getFirestore();
+// Named database, not "(default)" — must match FIRESTORE_DATABASE_ID in
+// lib/config.ts. Omitting it targets a database that does not exist, and
+// every write goes nowhere without erroring.
+const db = getFirestore(undefined, process.env.FIRESTORE_DATABASE_ID ?? 'nail-salon-db');
 
 const SERVICES = [
   { id: 'polish-change', name: 'Polish change', durationMin: 15, price: 18 },
